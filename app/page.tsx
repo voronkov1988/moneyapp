@@ -3,7 +3,18 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, CheckCircle } from "lucide-react"
+import {
+  Plus,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Target,
+  PiggyBank,
+  AlertTriangle,
+  CheckCircle,
+  Users,
+  Bell,
+} from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -403,6 +414,18 @@ export default function Dashboard() {
             <Button variant="outline" className="w-full h-12">
               <PiggyBank className="mr-2 h-4 w-4" />
               Накопления
+            </Button>
+          </Link>
+          <Link href="/family">
+            <Button variant="outline" className="w-full h-12">
+              <Users className="mr-2 h-4 w-4" />
+              Семейный бюджет
+            </Button>
+          </Link>
+          <Link href="/notifications">
+            <Button variant="outline" className="w-full h-12">
+              <Bell className="mr-2 h-4 w-4" />
+              Уведомления
             </Button>
           </Link>
           <Link href="/reports">

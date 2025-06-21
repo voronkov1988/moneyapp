@@ -2,23 +2,39 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Wallet, Mail, Lock } from "lucide-react"
+import { Wallet, Mail, Lock, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [inviteToken, setInviteToken] = useState("")
+  const [inviteEmail, setInviteEmail] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  useEffect(() => {
+    // Проверяем параметры приглашения
+    const invite = searchParams.get("invite")
+    const email = searchParams.get("email")
+
+    if (invite) {
+      setInviteToken(invite)
+    }
+    if (email) {
+      setInviteEmail(email)
+    }
+  }, [searchParams])
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -37,6 +53,13 @@ export default function AuthPage() {
       return
     }
 
+    // Если есть приглашение, проверяем email
+    if (inviteEmail && email !== inviteEmail) {
+      setError(`Для принятия приглашения используйте email: ${inviteEmail}`)
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -45,7 +68,14 @@ export default function AuthPage() {
     if (error) {
       setError(error.message)
     } else {
-      setMessage("Проверьте вашу почту для подтверждения регистрации")
+      if (inviteToken) {
+        setMessage("Регистрация завершена! Перенаправляем к приглашению...")
+        setTimeout(() => {
+          router.push(`/invite/${inviteToken}`)
+        }, 2000)
+      } else {
+        setMessage("Проверьте вашу почту для подтверждения регистрации")
+      }
     }
     setLoading(false)
   }
@@ -60,6 +90,13 @@ export default function AuthPage() {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
+    // Если есть приглашение, проверяем email
+    if (inviteEmail && email !== inviteEmail) {
+      setError(`Для принятия приглашения используйте email: ${inviteEmail}`)
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -68,7 +105,11 @@ export default function AuthPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push("/")
+      if (inviteToken) {
+        router.push(`/invite/${inviteToken}`)
+      } else {
+        router.push("/")
+      }
     }
     setLoading(false)
   }
@@ -97,16 +138,41 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Wallet className="h-12 w-12 text-primary" />
+            {inviteToken ? <Users className="h-12 w-12 text-primary" /> : <Wallet className="h-12 w-12 text-primary" />}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Финансовый трекер</h1>
-          <p className="text-gray-600 mt-2">Управляйте своими финансами легко и удобно</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {inviteToken ? "Присоединение к семье" : "Финансовый трекер"}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {inviteToken
+              ? "Войдите или зарегистрируйтесь для принятия приглашения"
+              : "Управляйте своими финансами легко и удобно"}
+          </p>
         </div>
+
+        {inviteToken && (
+          <Alert className="mb-6">
+            <Users className="h-4 w-4" />
+            <AlertDescription>
+              Вы переходите по приглашению в семейный бюджет.
+              {inviteEmail && (
+                <>
+                  <br />
+                  <strong>Email для входа: {inviteEmail}</strong>
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>
             <CardTitle>Добро пожаловать</CardTitle>
-            <CardDescription>Войдите в свой аккаунт или создайте новый</CardDescription>
+            <CardDescription>
+              {inviteToken
+                ? "Войдите в свой аккаунт или создайте новый для принятия приглашения"
+                : "Войдите в свой аккаунт или создайте новый"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
@@ -127,6 +193,7 @@ export default function AuthPage() {
                         type="email"
                         placeholder="your@email.com"
                         className="pl-10"
+                        defaultValue={inviteEmail}
                         required
                       />
                     </div>
@@ -163,6 +230,7 @@ export default function AuthPage() {
                         type="email"
                         placeholder="your@email.com"
                         className="pl-10"
+                        defaultValue={inviteEmail}
                         required
                       />
                     </div>
