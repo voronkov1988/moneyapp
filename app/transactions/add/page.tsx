@@ -78,6 +78,7 @@ export default function AddTransactionPage() {
       setLoading(false)
       return
     }
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
     const { error: insertError } = await supabase.from("transactions").insert([
       {
@@ -94,9 +95,32 @@ export default function AddTransactionPage() {
       setError(insertError.message)
     } else {
       setSuccess("Транзакция успешно добавлена!")
+
+      // Автоматически отправляем Telegram уведомления
+      const message = `Новая транзакция добавлена - 
+                          Сумма: ${amount} ₽
+                          Тип: ${transactionType === "income" ? "Доход" : "Расход"}
+                          Категория: ${category}
+                          Описание: ${description}
+                          Дата: ${date}
+                        `
+
+
+      const telegramResponse = await fetch("/api/sendTelegramMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, profile }),
+      })
+
+    // const telegramResponse = await fetch("https://api.telegram.org/bot<token>/sendMessage", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ message, profile }),
+    //   })
+
       setTimeout(() => {
         router.push("/")
-      }, 1500)
+      }, 2000)
     }
     setLoading(false)
   }

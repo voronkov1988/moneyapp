@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, User, Bell, CreditCard, Smartphone, Mail, Save } from "lucide-react"
+import { ArrowLeft, User, Bell, CreditCard, Smartphone, Mail, Save, Send } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 
 interface UserProfile {
   id: string
@@ -37,6 +38,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("")
   const router = useRouter()
   const supabase = createClient()
+  const [openModal, setOpenModal] = useState(false)
 
   useEffect(() => {
     checkUser()
@@ -262,7 +264,7 @@ export default function ProfilePage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="phone">Телефон</Label>
                       <div className="relative">
                         <Smartphone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -276,6 +278,27 @@ export default function ProfilePage() {
                         />
                       </div>
                       <p className="text-xs text-gray-500">Для SMS уведомлений</p>
+                    </div> */}
+
+                    <div className="space-y-2">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Label htmlFor="phone">Телеграмм ID</Label>
+                        <div onClick={() => setOpenModal(true)} style={{ cursor: 'help' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-question-mark-icon lucide-message-circle-question-mark"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <Send className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder="+7 (999) 123-45-67"
+                          defaultValue={profile?.phone || ""}
+                          className="pl-10"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500">Для уведомлений в телеграмм</p>
                     </div>
 
                     <div className="space-y-2">
@@ -436,6 +459,16 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent>
+          <DialogTitle>Настройка уведомлений в телеграмм:</DialogTitle>
+          <DialogDescription>
+            1. Для начала откройте бота, в нем можно получить ваш ид <a target="_blank" href="https://t.me/getidsbot">https://t.me/getidsbot</a>
+            <img src="/instr.png" alt="" />
+            2. Открыть бота <a target="_blank" href="https://t.me/finance_tracker_appbot">https://t.me/finance_tracker_appbot</a> и нажать кнопку START
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

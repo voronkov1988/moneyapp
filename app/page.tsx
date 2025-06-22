@@ -478,7 +478,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {transactions.slice(0, 5).map((transaction) => (
+              {transactions.slice(0, 20).map((transaction) => (
                 <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div
